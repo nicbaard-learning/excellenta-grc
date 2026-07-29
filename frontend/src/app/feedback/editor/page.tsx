@@ -91,23 +91,45 @@ export default function FeedbackEditorPage() {
         });
         fabricRef.current = canvas;
 
+        // Prevent touch scrolling/zoom gestures from stealing draw input.
+        canvas.upperCanvasEl.style.touchAction = 'none';
+        canvas.lowerCanvasEl.style.touchAction = 'none';
+
         // Use Fabric's built-in event system instead of native DOM events.
         // Fabric v7 handles event propagation internally and provides
         // normalized event objects with scenePoint/viewportPoint coordinates.
         // This avoids issues with stopPropagation() that Fabric may call
         // on native DOM events, which would prevent our handlers from firing.
 
-        const handlePointerDown = (opt: { scenePoint: { x: number; y: number }; e: PointerEvent; target?: any }) => {
+        const getScenePoint = (opt: {
+          scenePoint?: { x: number; y: number };
+          pointer?: { x: number; y: number };
+          absolutePointer?: { x: number; y: number };
+          e?: Event;
+        }) => {
+          if (opt.scenePoint) return opt.scenePoint;
+          if (opt.pointer) return opt.pointer;
+          if (opt.absolutePointer) return opt.absolutePointer;
+          if (opt.e) {
+            const computed = canvas.getScenePoint(opt.e as MouseEvent);
+            return { x: computed.x, y: computed.y };
+          }
+          return null;
+        };
+
+        const handlePointerDown = (opt: { scenePoint?: { x: number; y: number }; e?: Event; target?: unknown }) => {
           try {
-            if (opt.e && opt.e.button !== 0) return;
+            // Ignore non-primary mouse button only when button is present.
+            const button = (opt.e as MouseEvent | undefined)?.button;
+            if (typeof button === 'number' && button !== 0) return;
             // Don't start drawing if user clicked on an existing object
             // (e.g. resize handle, selection). Let Fabric handle that.
             if (opt.target) return;
 
             const tool = activeToolRef.current;
-            const pointer = opt.scenePoint;
+            const pointer = getScenePoint(opt);
             const fm = fabricModuleRef.current;
-            if (!fm) return;
+            if (!fm || !pointer) return;
 
             console.log('[Editor] pointerdown', tool, pointer.x, pointer.y);
 
@@ -124,7 +146,9 @@ export default function FeedbackEditorPage() {
               });
               canvas.add(text);
               canvas.setActiveObject(text);
+              canvas.renderAll();
               text.enterEditing();
+              text.hiddenTextarea?.focus();
               return;
             }
 
@@ -196,12 +220,18 @@ export default function FeedbackEditorPage() {
           }
         };
 
-        const handlePointerMove = (opt: { scenePoint: { x: number; y: number } }) => {
+        const handlePointerMove = (opt: {
+          scenePoint?: { x: number; y: number };
+          pointer?: { x: number; y: number };
+          absolutePointer?: { x: number; y: number };
+          e?: Event;
+        }) => {
           try {
             if (!isDrawing.current) return;
 
             const tool = activeToolRef.current;
-            const pointer = opt.scenePoint;
+            const pointer = getScenePoint(opt);
+            if (!pointer) return;
 
             if (tool === 'pen') {
               // Draw a small Line segment from the previous point to the

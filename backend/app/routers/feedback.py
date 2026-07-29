@@ -1,4 +1,5 @@
 import json
+import os
 
 import httpx
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
@@ -6,7 +7,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 router = APIRouter(prefix="/feedback", tags=["Feedback"])
 
 # Discord webhook URL - stored server-side for security
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1514199608048222328/xPmcaGgqwK1-puv-tdoh0UNomJpq7JZ8HKAUoGKMnpciFXYz7HD9IzyeUDCrtyPboIVT"
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 
 @router.post("")
