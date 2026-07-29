@@ -35,7 +35,7 @@ app.add_middleware(
 # Security headers (via middleware)
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["localhost", "127.0.0.1", "*.excellenta.com"],
+    allowed_hosts=["localhost", "127.0.0.1", "*.excellenta.com", "excellenta-grc.onrender.com"],
 )
 
 # Routers
