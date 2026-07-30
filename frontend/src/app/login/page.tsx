@@ -197,9 +197,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <p className="mt-6 text-center text-xs text-muted-foreground">
-                Demo credentials: <span className="font-mono text-foreground">admin@excellenta.com</span> / <span className="font-mono text-foreground">Admin123!</span>
-              </p>
+
             </div>
           </motion.div>
         </div>
